@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<form action="/userlocation" method="POST">
+  Location lat: <input type="text" name="lat"><br>
+  Location lng: <input type="text" name="lng"><br>
+  <input type="submit" value="Submit">
+</form>
+
+
+{% endblock %}

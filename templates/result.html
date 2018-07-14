@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<h3>Info</h3>
+
+{% for item in location_dict['daily']['data'] %}
+    <li>
+        Time: {{item['time']}} Summary: {{item['summary']}} Cloudcover: {{item['cloudCover']}}
+    </li>
+{% endfor %}
+
+
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<title>Locations</title>
+
+<h2>This is locations - testing route, db, and api weather calls</h2>
+
+
+
+<table>
+    <tr>
+        <th>Location</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Date and Time</th>
+        <th>Temperature</th>
+        <th>Cloudcover</th>
+        <th>Chance of rain</th>
+        <th>MoonPhase</th>
+    </tr>
+    {% for loc in locations_dict %}
+    <tr>
+        <th>{{loc.loc_name}}</th>
+        <th>{{loc.lat}}</th>
+        <th>{{loc.lng}}</th>
+        <th>{{locations_dict[loc]['currently']['time']}}</th>
+        <th>{{locations_dict[loc]['currently']['temperature']}}</th>
+        <th>{{locations_dict[loc]['currently']['cloudCover']}}</th>
+        <th>{{locations_dict[loc]['currently']['precipProbability']}}</th>
+        <th>{{locations_dict[loc]['daily']['data'][0]['moonPhase']}}</th>
+    </tr>
+    {% endfor %}
+
+
+
+</table>
+
+
+
+
+
+
+
+{% endblock %}
