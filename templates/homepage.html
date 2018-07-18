@@ -25,6 +25,10 @@
   </head>
   <body>
     <div id="map"></div>
+    <button type="button" id="myloc">Click to show weather</button>
+    <div id="weather">Put weather info here</div>
+
+
     <script>
       var map;
       function initMap() {
@@ -116,14 +120,15 @@
 
       // Testing kml overlay with an example template
 
-      var ctaLayer = new google.maps.KmlLayer({
-        url: 'http://googlemaps.github.io/js-v2-samples/ggeoxml/cta.kml',
-        map: map
-        });
+      // var ctaLayer = new google.maps.KmlLayer({
+      //   url: 'http://googlemaps.github.io/js-v2-samples/ggeoxml/cta.kml',
+      //   map: map
+      //   });
 
-      ctaLayer.setMap(map);
+      // ctaLayer.setMap(map);
 
 
+      let d_infow = new google.maps.InfoWindow();
 
       // Loading geojson format files from route and showing on map
 
@@ -131,6 +136,50 @@
       map.data.setStyle({
           icon: "http://maps.google.com/mapfiles/ms/micons/blue.png"
         });
+      // Add event listener that shows info window (latlng info) on click
+      map.data.addListener('click', function(e) {
+        console.log(e.latLng.toString());
+        console.log(e.latLng.lat())
+        d_infow.setContent(`${e.latLng.toString()}`);
+        d_infow.setPosition(e.latLng);
+        d_infow.open(map);
+
+        let url = `https://api.darksky.net/forecast/[INSERT_KEY]/${e.latLng.lat()},${e.latLng.lng()}?callback=?`
+        console.log(url)
+        $.getJSON(url, function(json) {
+          console.log(json);
+          console.log(json['daily']['data'][0]['summary']);
+          let date = moment(parseInt(json['currently']['time'])*1000);  //using moment library to make object
+          console.log(date.format('MMMM Do YYYY, h:mm:ss a'));
+          console.log(date.format('MMMM Do YYYY'));
+          var x;
+          let txt = `Current time: ${date.format('MMMM Do YYYY, h:mm:ss a')}<br><br><div id="container">`;
+          // $('#weather').html(`<h5>Time: ${date}</h5><h5>Weather: ${json['currently']['summary']}</h5>`)
+          for (x in json['daily']['data']) {
+            // let dt = new Date(parseInt(json['daily']['data'][x]['time']))
+            let timestamp = json['daily']['data'][x]['time']
+            txt += `<div class="pane"><li>DateTime: ${moment(parseInt(json['daily']['data'][x]['time'])*1000).tz(json['timezone']).format('MMMM Do YYYY, dddd')} (${json['timezone']})</li>
+                   <li>Summary: ${json['daily']['data'][x]['summary']}</li>
+                   <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
+                   <li>Moon phase: ${json['daily']['data'][x]['moonPhase']}</li>
+                   <button type="button" data-time="${timestamp}">Save</button><br><br></div>`;
+          }
+          txt = txt+"</div>"
+          // document.getElementById("weather").innerHTML = txt;
+          d_infow.setContent(`${e.latLng.toString()}<br><br>${txt}`);
+
+          // Setup event listener to post timestamp info stored in button and latlng info from event
+
+          $('button').click(function(){
+            console.log($(this).attr('data-time'))
+            console.log(e.latLng.lat())
+
+            let info = {'lat': e.latLng.lat(), 'lng': e.latLng.lng(), 'timestamp': $(this).attr('data-time')}
+            $.post("/save-json", info, function(data) { console.log(data); })
+          });
+
+        });
+      });
 
       // Place marker on click
 
@@ -153,6 +202,45 @@
             infoWindow.setContent('Location found.');
             infoWindow.open(map);
             map.setCenter(pos);
+
+            // Pass current position info to button 
+            let button = document.querySelector('#myloc');
+            button.addEventListener('click', function(e) {
+              console.log('Button clicked and listened for event');
+              console.log(pos);
+              console.log(pos.lat);
+              console.log(pos.lng);
+              let url = `https://api.darksky.net/forecast/[INSERT_KEY]/${pos.lat},${pos.lng}?callback=?`
+              console.log(url)
+              $.getJSON(url, function(json) {
+                console.log(json);
+                console.log(json['daily']['data'][0]['summary']);
+                let date = new Date(parseInt(json['currently']['time'])*1000)
+                var x;
+                let txt = `Current time: ${date}<br><br><div id="container">`;
+                // $('#weather').html(`<h5>Time: ${date}</h5><h5>Weather: ${json['currently']['summary']}</h5>`)
+                for (x in json['daily']['data']) {
+                  // let dt = new Date(parseInt(json['daily']['data'][x]['time']))
+                  txt += `<div class="pane"><li>DateTime: ${new Date(parseInt(json['daily']['data'][x]['time'])*1000)}</li>
+                         <li>Summary: ${json['daily']['data'][x]['summary']}</li>
+                         <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
+                         <button class="save">Save</button><br><br></div>`;
+                }
+                txt = txt+"</div>"
+                document.getElementById("weather").innerHTML = txt;
+
+                container.onclick = function(e){
+                  if (e.target.className != 'save') return;
+
+                  let pane = e.target.closest('.pane');
+                  console.log(pane);
+                  console.log(pane.getElementsByTagName("li")[0].innerHTML)
+                }
+
+              });
+
+            });
+
           }, function() {
             handleLocationError(true, infoWindow, map.getCenter());
           });
@@ -160,8 +248,9 @@
           // Browser doesn't support Geolocation
           handleLocationError(false, infoWindow, map.getCenter());
         }
-      }
+      } // last curly bracket for init map function
 
+      
 
     // This function places new marker on map and posts latlng coordinates to server
     function placeMarker(position, map) {
@@ -170,11 +259,18 @@
           map: map
       });
       map.panTo(position);
-      let coordlat = marker.getPosition().lat();
-      let coordlng = marker.getPosition().lng();
-      coord = `${coordlat},${coordlng}`
-      console.log([coordlat, coordlng])
-      $.post( "/markercoord", {coord_data: coord});
+      marker.addListener('click', function(e) {
+        
+        var coord = e.latLng.toJSON()
+        console.log(coord)        
+        $.post( "/markercoord", e.latLng.toJSON());
+        // $.post( "/markercoord", {coord_data: coordstr})
+      });
+      // let coordlat = marker.getPosition().lat();
+      // let coordlng = marker.getPosition().lng();
+      // coord = `${coordlat},${coordlng}`
+      // console.log([coordlat, coordlng])
+      // $.post( "/markercoord", {coord_data: coord});
     }
 
 

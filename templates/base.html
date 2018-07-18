@@ -7,9 +7,27 @@
   integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
   crossorigin="anonymous"></script>
 
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment-with-locales.js" integrity="sha256-uAmtcHxcK7o0T9gFmupKERz4zIJwFBUkWZFtzqUZ5ag=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/locale/en-ca.js" integrity="sha256-GX6pJwa8O8f+2g59UUqo5UJrmGLcxBoBv5VYFTofTkc=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone.js" integrity="sha256-witMGWr+zN2+Pn/p/CUEsz8q/q/sM+HyB28GV5ZJxOU=" crossorigin="anonymous"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone-utils.js" integrity="sha256-UirQKgKvWZ9II501auDbL29ChLoFh070W71EJd4k5AI=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone-with-data-2012-2022.js" integrity="sha256-u4lTe3RWgIRuZxzlNs8p49388tdYSa6AZNMHQT03x08=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone-with-data.js" integrity="sha256-uupLC8vc3S6tg2+cgXml7/1lFR28q95T+6apPd9oeD8=" crossorigin="anonymous"></script>
+
+
+
 </head>
 
 <body>
+
+  <form action="/logout">
+    <input type="submit" value="Logout">
+  </form>
    
 {% with messages = get_flashed_messages() %}
   {% if messages %}

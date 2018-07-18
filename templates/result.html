@@ -4,12 +4,20 @@
 
 <h3>Info</h3>
 
-{% for item in location_dict['daily']['data'] %}
+<!-- {# for item in location_dict['daily']['data'] #}
     <li>
-        Time: {{item['time']}} Summary: {{item['summary']}} Cloudcover: {{item['cloudCover']}}
+       {# Time: {{item['time']}} Summary: {{item['summary']}} Cloudcover: {{item['cloudCover']}} #}
     </li>
-{% endfor %}
+{# endfor #} -->
 
+
+{% for item in saved_lst %}
+    Name: {{item.location.loc_name}} Lat: {{item.location.lat}}  Lng: {{item.location.lng}}  Time: {{item.saved_datetime}}<br>
+
+{% endfor %}
+<h1>TESTING</h1>
 
 
 {% endblock %}
+
+
