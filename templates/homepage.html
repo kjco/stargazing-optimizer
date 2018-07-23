@@ -2,7 +2,7 @@
 {% block content %}
 
 
-<h2>This is the homepage - testing routes</h2>
+<h5>This is the homepage - testing routes</h5>
 
 
  <head>
@@ -24,13 +24,17 @@
     </style>
   </head>
   <body>
+    <button type="button" id="mysaved">Click to show saved records</button>
     <div id="map"></div>
     <button type="button" id="myloc">Click to show weather</button>
     <div id="weather">Put weather info here</div>
 
 
     <script>
+      let ds_key = {{ds_key|tojson}}
+      let gmap_key = {{gmap_key|tojson}}
       var map;
+
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 37.368, lng: -122.036346},
@@ -132,10 +136,17 @@
 
       // Loading geojson format files from route and showing on map
 
-      map.data.loadGeoJson('/locations.json');
-      map.data.setStyle({
+      $.getJSON('/locations.json', function(data) {
+        map.data.addGeoJson(data);
+        map.data.setStyle({
           icon: "http://maps.google.com/mapfiles/ms/micons/blue.png"
         });
+
+      });
+      // map.data.loadGeoJson('/locations.json');
+      // map.data.setStyle({
+      //     icon: "http://maps.google.com/mapfiles/ms/micons/blue.png"
+      //   });
       // Add event listener that shows info window (latlng info) on click
       map.data.addListener('click', function(e) {
         console.log(e.latLng.toString());
@@ -144,7 +155,7 @@
         d_infow.setPosition(e.latLng);
         d_infow.open(map);
 
-        let url = `https://api.darksky.net/forecast/[INSERT_KEY]/${e.latLng.lat()},${e.latLng.lng()}?callback=?`
+        let url = `https://api.darksky.net/forecast/${ds_key}/${e.latLng.lat()},${e.latLng.lng()}?callback=?`
         console.log(url)
         $.getJSON(url, function(json) {
           console.log(json);
@@ -162,7 +173,7 @@
                    <li>Summary: ${json['daily']['data'][x]['summary']}</li>
                    <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
                    <li>Moon phase: ${json['daily']['data'][x]['moonPhase']}</li>
-                   <button type="button" data-time="${timestamp}">Save</button><br><br></div>`;
+                   <button type="button" class="savetime" data-time="${timestamp}">Save</button><br><br></div>`;
           }
           txt = txt+"</div>"
           // document.getElementById("weather").innerHTML = txt;
@@ -170,13 +181,22 @@
 
           // Setup event listener to post timestamp info stored in button and latlng info from event
 
-          $('button').click(function(){
-            console.log($(this).attr('data-time'))
-            console.log(e.latLng.lat())
-
+          $('.savetime').click(function() {
+            console.log($(this).attr('data-time'));
+            console.log(e.latLng.lat());
             let info = {'lat': e.latLng.lat(), 'lng': e.latLng.lng(), 'timestamp': $(this).attr('data-time')}
             $.post("/save-json", info, function(data) { console.log(data); })
+
           });
+
+
+          // $('button').click(function(){
+          //   console.log($(this).attr('data-time'))
+          //   console.log(e.latLng.lat())
+
+          //   let info = {'lat': e.latLng.lat(), 'lng': e.latLng.lng(), 'timestamp': $(this).attr('data-time')}
+          //   $.post("/save-json", info, function(data) { console.log(data); })
+          // });
 
         });
       });
@@ -186,6 +206,86 @@
       map.addListener('click', function(e) {
       placeMarker(e.latLng, map);
       });
+
+      // Try to load user saved data
+
+      let s_infow = new google.maps.InfoWindow();
+
+      let saved_b = document.querySelector('#mysaved');
+      saved_b.addEventListener('click', function() {
+          // map.data.setMap(null);
+          $.getJSON('/myrecords.json', function(data) {console.log(data);});
+          data1 = new google.maps.Data();
+          data1.loadGeoJson('/myrecords.json');
+          data1.setMap(map);
+          data1.setStyle({icon: "http://maps.google.com/mapfiles/ms/micons/yellow.png"});
+          console.log("loaded my saved");
+
+          data1.addListener("mouseover", function(evt) {
+
+            let url1 = `https://api.darksky.net/forecast/${ds_key}/${evt.latLng.lat()},${evt.latLng.lng()},${evt.feature.f["timestamp"]}?callback=?`
+
+            $.getJSON(url1, function(json) { 
+                  // TEST THIS
+                infotxt = `<strong>${evt.feature.f["name"]}</strong><br>
+                Saved date: ${moment(parseInt(evt.feature.f["timestamp"])*1000).tz(json['timezone']).format('MMMM Do YYYY, dddd')} (${json['timezone']})<br>
+                Cloud cover: ${json['daily']['data'][0]['cloudCover']}<br>
+                MoonPhase: ${json['daily']['data'][0]['moonPhase']}<br><br>
+                <form>Rate this location: 
+                      <input type="radio" name="rating" value="1">1 
+                      <input type="radio" name="rating" value="2">2 
+                      <input type="radio" name="rating" value="3">3 
+                      <input type="radio" name="rating" value="4">4 
+                      <input type="radio" name="rating" value="5">5 </form>`
+
+                s_infow.setPosition(evt.latLng);
+                s_infow.setContent(infotxt)
+                s_infow.open(map);
+                console.log(evt.feature.f["timestamp"]);
+                console.log(evt.feature.f["loc_id"])
+
+                $('[type*="radio"]').change(function() {
+
+                  formInput = {"score": $(this).attr('value'), "saved_id": evt.feature.f["saved_id"]}
+
+                  console.log($(this).attr('value'))
+                  $.post('/rating-json', formInput, function(data){
+                    alert(data);
+
+                  });
+                });
+
+            });
+
+            // infotxt = `<strong>${evt.feature.f["name"]}</strong><br>
+            // saved time: ${moment(parseInt(evt.feature.f["timestamp"])*1000).format('MMMM Do YYYY, dddd')}`
+
+            // s_infow.setPosition(evt.latLng);
+            // s_infow.setContent(infotxt)
+            // s_infow.open(map);
+            // console.log(evt.feature.f["timestamp"])
+
+          });
+
+
+          // data1.setMap(null);
+          // console.log("removed my saved");
+
+          // $.getJSON('/myrecords.json', function(data) {
+          //     console.log("Test this")
+          //     map.data.addGeoJson(data);
+          //     map.data.setStyle({
+          //       icon: "http://maps.google.com/mapfiles/ms/micons/yellow.png"
+          //     });
+          //   });
+
+              // map.data.loadGeoJson('/myrecords.json');
+              // map.data.setStyle({
+              // icon: "http://maps.google.com/mapfiles/ms/micons/yellow.png"
+              // });
+      });
+
+
 
       // Generate info window that shows current location
 
@@ -210,7 +310,7 @@
               console.log(pos);
               console.log(pos.lat);
               console.log(pos.lng);
-              let url = `https://api.darksky.net/forecast/[INSERT_KEY]/${pos.lat},${pos.lng}?callback=?`
+              let url = `https://api.darksky.net/forecast/182208326a8cfd708f594c9b45e646b3/${pos.lat},${pos.lng}?callback=?`
               console.log(url)
               $.getJSON(url, function(json) {
                 console.log(json);
@@ -260,10 +360,37 @@
       });
       map.panTo(position);
       marker.addListener('click', function(e) {
+
+        var new_infow = new google.maps.InfoWindow();
+        var text = `<div id="form"><table>
+      <tr><td>Name:</td> <td><input type='text' id='name'/> </td> </tr>
+      <tr><td>Description:</td> <td><input type='text' id='describe'/> </td> </tr>
+      <tr><td></td><td><input type='button' value='Save' id='newloc'/></td></tr>
+      </table></div>`
+
+        new_infow.setContent(`${e.latLng.toString()}<br>${text}`);
+        new_infow.setPosition(e.latLng);
+        new_infow.open(map);
+
+        $("#newloc").on("click", function(evt) {
+
+          let formInputs = {"lat": e.latLng.lat(),
+                            "lng": e.latLng.lng(),
+                            "name": $("#name").val(),
+                            "desc": $("#describe").val()}
+          $.post("/markercoord", formInputs, function(d) { 
+            alert(d); 
+            new_infow.close();
+            marker.setMap(null) 
+            map.data.loadGeoJson('/locations.json');
+          });
+
+        });
+
         
-        var coord = e.latLng.toJSON()
-        console.log(coord)        
-        $.post( "/markercoord", e.latLng.toJSON());
+        // var coord = e.latLng.toJSON()
+        // console.log(coord)        
+        // $.post( "/markercoord", e.latLng.toJSON());
         // $.post( "/markercoord", {coord_data: coordstr})
       });
       // let coordlat = marker.getPosition().lat();
@@ -283,7 +410,7 @@
         infoWindow.open(map);  
       }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=[INSERT_KEY]&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key={{gmap_key}}&callback=initMap"
     async defer></script>
   </body>
 

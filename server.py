@@ -26,6 +26,7 @@ app.jinja_env.undefined = StrictUndefined
 
 
 darksky_key=os.environ['DARKSKY_API_KEY']
+gmap_key=os.environ['GOOGLEMAPS_API_KEY']
 
 
 @app.route("/")
@@ -33,7 +34,7 @@ def index():
 
     print(session)
 
-    return render_template("homepage.html")
+    return render_template("homepage.html", ds_key=darksky_key, gmap_key=gmap_key)
 
 
 @app.route("/locations")
@@ -72,22 +73,39 @@ def location_info():
     return jsonify(locs_json)
 
 
+@app.route("/myrecords.json")
+def saved_records_info():
+
+    records_lst = SavedRecord.query.filter(SavedRecord.person_id == session["person_id"]).all()
+
+    feature_lst = []
+    for record in records_lst:
+        lat = record.location.lat
+        lng = record.location.lng
+        saved_time = int(record.saved_datetime.timestamp())
+        loc_point = geojson.Point((lng, lat))
+        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id})
+        feature_lst.append(loc_json)
+
+    locs_json = geojson.FeatureCollection(feature_lst)
+
+    return jsonify(locs_json)
+
+
+
 @app.route('/markercoord', methods=['POST'])
 def get_post_javascript_data():
+
     print(request.form)
     lat = request.form['lat']
     lng = request.form['lng']
-    print(lat, lng)
-
-
-    # coord_lst = coord.split(',')
-    # coord_lst = [float(item) for item in coord_lst]
-    # print("@@@@@@@@@@@@@@@@@@.{}".format(coord_lst))
-    # print("!!!!!!!!!!!!!!!!!!{}".format(type(coord_lst[0])))
+    name = request.form['name']
+    print(lat, lng, name)
 
 
     loc = Location(lat=float(lat),
-                   lng=float(lng))
+                   lng=float(lng),
+                   loc_name=name)
     db.session.add(loc)
     db.session.commit()
 
@@ -129,6 +147,20 @@ def get_save_data():
     db.session.commit()
 
     return 'Location saved'
+
+
+@app.route('/rating-json', methods=['POST'])
+def get_loc_rating():
+    print(request.form)
+    score = int(request.form["score"])
+    saved_id = int(request.form["saved_id"])
+
+    new_rating = Rating(saved_id=saved_id,score=score)
+    db.session.add(new_rating)
+    db.session.commit()
+
+    return 'Thank you for rating this location!'
+
 
 
 @app.route("/person/<person_id>")
