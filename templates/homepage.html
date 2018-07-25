@@ -2,7 +2,7 @@
 {% block content %}
 
 
-<h5>This is the homepage - testing routes</h5>
+<!-- <h5>This is the homepage - testing routes</h5> -->
 
 
  <head>
@@ -24,15 +24,49 @@
     </style>
   </head>
   <body>
-    <button type="button" id="mysaved">Click to show saved records</button>
+    <button type="button" class="btn btn-info btn-sm" id="mysaved">Click to show saved records</button>
     <div id="map"></div>
     <button type="button" id="myloc">Click to show weather</button>
-    <div id="weather">Put weather info here</div>
+    <div class="card-group" id="weather">Put weather info here</div>
+
+
+
+<!-- <div class="card-group">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Card title</h5>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+    </div>
+    <div class="card-footer">
+      <small class="text-muted">Last updated 3 mins ago</small>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Card title</h5>
+      <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
+      <p class="card-text">test this</p>
+    </div>
+    <div class="card-footer">
+      <small class="text-muted">Last updated 3 mins ago</small>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Card title</h5>
+      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.<i class="fas fa-cloud"></i></p>
+    </div>
+    <div class="card-footer">
+      <small class="text-muted">Last updated 3 mins ago</small>
+    </div>
+  </div>
+</div> -->
 
 
     <script>
       let ds_key = {{ds_key|tojson}}
       let gmap_key = {{gmap_key|tojson}}
+
       var map;
 
       function initMap() {
@@ -150,7 +184,7 @@
       // Add event listener that shows info window (latlng info) on click
       map.data.addListener('click', function(e) {
         console.log(e.latLng.toString());
-        console.log(e.latLng.lat())
+        console.log(e);
         d_infow.setContent(`${e.latLng.toString()}`);
         d_infow.setPosition(e.latLng);
         d_infow.open(map);
@@ -177,7 +211,7 @@
           }
           txt = txt+"</div>"
           // document.getElementById("weather").innerHTML = txt;
-          d_infow.setContent(`${e.latLng.toString()}<br><br>${txt}`);
+          d_infow.setContent(`${e.feature.f['name']} ${e.latLng.toString()}<br>Light value: ${e.feature.f['light']}<br><br>${txt}`);
 
           // Setup event listener to post timestamp info stored in button and latlng info from event
 
@@ -318,6 +352,8 @@
                 let date = new Date(parseInt(json['currently']['time'])*1000)
                 var x;
                 let txt = `Current time: ${date}<br><br><div id="container">`;
+                let txt2 = ``
+
                 // $('#weather').html(`<h5>Time: ${date}</h5><h5>Weather: ${json['currently']['summary']}</h5>`)
                 for (x in json['daily']['data']) {
                   // let dt = new Date(parseInt(json['daily']['data'][x]['time']))
@@ -325,17 +361,27 @@
                          <li>Summary: ${json['daily']['data'][x]['summary']}</li>
                          <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
                          <button class="save">Save</button><br><br></div>`;
-                }
-                txt = txt+"</div>"
-                document.getElementById("weather").innerHTML = txt;
 
-                container.onclick = function(e){
-                  if (e.target.className != 'save') return;
-
-                  let pane = e.target.closest('.pane');
-                  console.log(pane);
-                  console.log(pane.getElementsByTagName("li")[0].innerHTML)
+                  txt2 += `<div class="card">
+                          <div class="card-body">
+                            <h6 class="card-title">${moment(parseInt(json['daily']['data'][x]['time'])*1000).format('dddd')}</h6>
+                            <p class="card-text">${json['daily']['data'][x]['summary']}</p>
+                          </div>
+                          <div class="card-footer">
+                            <small class="text-muted">${json['daily']['data'][x]['cloudCover']}</small>
+                          </div>
+                        </div>`;
                 }
+
+                document.getElementById("weather").innerHTML = txt2;
+
+                // container.onclick = function(e){
+                //   if (e.target.className != 'save') return;
+
+                //   let pane = e.target.closest('.pane');
+                //   console.log(pane);
+                //   console.log(pane.getElementsByTagName("li")[0].innerHTML)
+                // }
 
               });
 

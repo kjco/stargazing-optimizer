@@ -14,8 +14,8 @@ from geopy.geocoders import Nominatim
 
 import json
 import geojson
+import rasterio
 
-from flask_googlemaps import GoogleMaps
 
 
 app = Flask(__name__)
@@ -47,6 +47,7 @@ def show_locations():
         locations_dict[location] = forecast(darksky_key, location.lat, location.lng)
 
 
+
     return render_template("location_list.html",
                            # forecast=forecast,  # pass in forecast module
                            # datetime=datetime,  # pass in datetime module
@@ -63,8 +64,9 @@ def location_info():
     for loc in loc_lst:
         lat = loc.lat
         lng = loc.lng
+        light_val = int(get_pixel_val(loc.lat,loc.lng))
         loc_point = geojson.Point((loc.lng, loc.lat))
-        loc_json = geojson.Feature(geometry=loc_point)
+        loc_json = geojson.Feature(geometry=loc_point,properties={"id" : loc.loc_id, "name" : loc.loc_name, "light" : light_val})
         feature_lst.append(loc_json)
 
     locs_json = geojson.FeatureCollection(feature_lst)
@@ -237,37 +239,18 @@ def logout():
 
 
 
-# GoogleMaps(app, key="")
 
-# @app.route("/test")
-# def mapview():
-#     # creating a map in the view
-#     mymap = Map(
-#         identifier="view-side",
-#         lat=37.4419,
-#         lng=-122.1419,
-#         markers=[(37.4419, -122.1419)]
-#     )
-#     sndmap = Map(
-#         identifier="sndmap",
-#         lat=37.4419,
-#         lng=-122.1419,
-#         markers=[
-#           {
-#              'icon': 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-#              'lat': 37.4419,
-#              'lng': -122.1419,
-#              'infobox': "<b>Hello World</b>"
-#           },
-#           {
-#              'icon': 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-#              'lat': 37.4300,
-#              'lng': -122.1400,
-#              'infobox': "<b>Hello World from other place</b>"
-#           }
-#         ]
-#     )
-#     return render_template('test.html', mymap=mymap, sndmap=sndmap)
+def get_pixel_val(lat,lng):
+
+    lnglat_lst = [(float(lng), float(lat))]
+    with rasterio.open("BlackMarble_2016_3km_gray_geo.tif") as src:
+        for val in src.sample(lnglat_lst):
+            return val[0]
+
+
+
+
+
 
 
 
