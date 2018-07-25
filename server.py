@@ -94,6 +94,17 @@ def saved_records_info():
     return jsonify(locs_json)
 
 
+@app.route('/lightinfo', methods=['POST'])
+def get_location_light_info():
+
+    print(request.form)
+    lat = request.form['lat']
+    lng = request.form['lng']
+    light_val = int(get_pixel_val(lat,lng))
+
+    return jsonify(light_val)
+
+
 
 @app.route('/markercoord', methods=['POST'])
 def get_post_javascript_data():

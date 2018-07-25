@@ -30,7 +30,6 @@
     <div class="card-group" id="weather">Put weather info here</div>
 
 
-
 <!-- <div class="card-group">
   <div class="card">
     <div class="card-body">
@@ -198,20 +197,26 @@
           console.log(date.format('MMMM Do YYYY, h:mm:ss a'));
           console.log(date.format('MMMM Do YYYY'));
           var x;
-          let txt = `Current time: ${date.format('MMMM Do YYYY, h:mm:ss a')}<br><br><div id="container">`;
+          // let txt = `Current time: ${date.format('MMMM Do YYYY, h:mm:ss a')}<br><br><div id="container">`;
+          var head = `<table class="table table-hover"><thead><tr><th scope="col">Day</th><th scope="col">Summary</th> <th scope="col">Clouds</th><th scope="col">Moonphase</th><th scope="col">Save</th></tr></thead><tbody>`;
+          let body = ``
           // $('#weather').html(`<h5>Time: ${date}</h5><h5>Weather: ${json['currently']['summary']}</h5>`)
           for (x in json['daily']['data']) {
-            // let dt = new Date(parseInt(json['daily']['data'][x]['time']))
+
             let timestamp = json['daily']['data'][x]['time']
-            txt += `<div class="pane"><li>DateTime: ${moment(parseInt(json['daily']['data'][x]['time'])*1000).tz(json['timezone']).format('MMMM Do YYYY, dddd')} (${json['timezone']})</li>
-                   <li>Summary: ${json['daily']['data'][x]['summary']}</li>
-                   <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
-                   <li>Moon phase: ${json['daily']['data'][x]['moonPhase']}</li>
-                   <button type="button" class="savetime" data-time="${timestamp}">Save</button><br><br></div>`;
+            // txt += `<div class="pane"><li>DateTime: ${moment(parseInt(timestamp)*1000).tz(json['timezone']).format('MMMM Do YYYY, dddd')} (${json['timezone']})</li>
+            //        <li>Summary: ${json['daily']['data'][x]['summary']}</li>
+            //        <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
+            //        <li>Moon phase: ${json['daily']['data'][x]['moonPhase']}</li>
+            //        <button type="button" class="savetime" data-time="${timestamp}">Save</button><br><br></div>`;
+
+            body += `<tr><th scope="row">${moment(parseInt(timestamp)*1000).tz(json['timezone']).format('ddd, MMMM Do')}</th><td>${json['daily']['data'][x]['summary']}</td><td>${json['daily']['data'][x]['cloudCover']}</td><td>${json['daily']['data'][x]['moonPhase']}</td><td><button type="button" class="savetime" data-time="${timestamp}">Save</button></td></tr>`
+
           }
-          txt = txt+"</div>"
+          // txt = txt+"</div>"
+          head = head+body+"</tbody></table>"
           // document.getElementById("weather").innerHTML = txt;
-          d_infow.setContent(`${e.feature.f['name']} ${e.latLng.toString()}<br>Light value: ${e.feature.f['light']}<br><br>${txt}`);
+          d_infow.setContent(`${e.feature.f['name']} ${e.latLng.toString()}<br>Light value: ${e.feature.f['light']}<br><br>${head}`);
 
           // Setup event listener to post timestamp info stored in button and latlng info from event
 
@@ -266,11 +271,11 @@
                 Cloud cover: ${json['daily']['data'][0]['cloudCover']}<br>
                 MoonPhase: ${json['daily']['data'][0]['moonPhase']}<br><br>
                 <form>Rate this location: 
-                      <input type="radio" name="rating" value="1">1 
-                      <input type="radio" name="rating" value="2">2 
-                      <input type="radio" name="rating" value="3">3 
-                      <input type="radio" name="rating" value="4">4 
-                      <input type="radio" name="rating" value="5">5 </form>`
+                      <input type="radio" name="rating" value="1"> 1 
+                      <input type="radio" name="rating" value="2"> 2 
+                      <input type="radio" name="rating" value="3"> 3 
+                      <input type="radio" name="rating" value="4"> 4 
+                      <input type="radio" name="rating" value="5"> 5 </form>`
 
                 s_infow.setPosition(evt.latLng);
                 s_infow.setContent(infotxt)
@@ -351,24 +356,25 @@
                 console.log(json['daily']['data'][0]['summary']);
                 let date = new Date(parseInt(json['currently']['time'])*1000)
                 var x;
-                let txt = `Current time: ${date}<br><br><div id="container">`;
+                // let txt = `Current time: ${date}<br><br><div id="container">`;
                 let txt2 = ``
 
                 // $('#weather').html(`<h5>Time: ${date}</h5><h5>Weather: ${json['currently']['summary']}</h5>`)
                 for (x in json['daily']['data']) {
                   // let dt = new Date(parseInt(json['daily']['data'][x]['time']))
-                  txt += `<div class="pane"><li>DateTime: ${new Date(parseInt(json['daily']['data'][x]['time'])*1000)}</li>
-                         <li>Summary: ${json['daily']['data'][x]['summary']}</li>
-                         <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
-                         <button class="save">Save</button><br><br></div>`;
+                  // txt += `<div class="pane"><li>DateTime: ${new Date(parseInt(json['daily']['data'][x]['time'])*1000)}</li>
+                  //        <li>Summary: ${json['daily']['data'][x]['summary']}</li>
+                  //        <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
+                  //        <button class="save">Save</button><br><br></div>`;
 
                   txt2 += `<div class="card">
                           <div class="card-body">
                             <h6 class="card-title">${moment(parseInt(json['daily']['data'][x]['time'])*1000).format('dddd')}</h6>
                             <p class="card-text">${json['daily']['data'][x]['summary']}</p>
+                            <img src="/static/Cloud-Drizzle.svg" />
                           </div>
                           <div class="card-footer">
-                            <small class="text-muted">${json['daily']['data'][x]['cloudCover']}</small>
+                            <small class="text-muted"><i class="fas fa-cloud"></i> ${json['daily']['data'][x]['cloudCover']}%<br><i class="fas fa-moon"></i> ${json['daily']['data'][x]['moonPhase']}</small>
                           </div>
                         </div>`;
                 }
@@ -406,32 +412,45 @@
       });
       map.panTo(position);
       marker.addListener('click', function(e) {
+        var light_val;
 
-        var new_infow = new google.maps.InfoWindow();
-        var text = `<div id="form"><table>
-      <tr><td>Name:</td> <td><input type='text' id='name'/> </td> </tr>
-      <tr><td>Description:</td> <td><input type='text' id='describe'/> </td> </tr>
-      <tr><td></td><td><input type='button' value='Save' id='newloc'/></td></tr>
-      </table></div>`
+        $.post('/lightinfo', {"lat": e.latLng.lat(), "lng": e.latLng.lng()}, function(data) {
+            console.log(data)
+            light_val = data
 
-        new_infow.setContent(`${e.latLng.toString()}<br>${text}`);
-        new_infow.setPosition(e.latLng);
-        new_infow.open(map);
+            var new_infow = new google.maps.InfoWindow();
+            var text = `<div id="form"><table>
+          <tr><td>Name:</td> <td><input type='text' id='name'/> </td> </tr>
+          <tr><td>Description:</td> <td><input type='text' id='describe'/> </td> </tr>
+          <tr><td></td><td><input type='button' value='Save' id='newloc'/></td></tr>
+          </table></div>`
 
-        $("#newloc").on("click", function(evt) {
+            new_infow.setContent(`${e.latLng.toString()}<br>${data}<br>${text}`);
+            new_infow.setPosition(e.latLng);
+            new_infow.open(map);
+            console.log(e)
 
-          let formInputs = {"lat": e.latLng.lat(),
-                            "lng": e.latLng.lng(),
-                            "name": $("#name").val(),
-                            "desc": $("#describe").val()}
-          $.post("/markercoord", formInputs, function(d) { 
-            alert(d); 
-            new_infow.close();
-            marker.setMap(null) 
-            map.data.loadGeoJson('/locations.json');
+            $("#newloc").on("click", function(evt) {
+
+                let formInputs = {"lat": e.latLng.lat(),
+                                  "lng": e.latLng.lng(),
+                                  "name": $("#name").val(),
+                                  "desc": $("#describe").val()}
+                $.post("/markercoord", formInputs, function(d) { 
+                  alert(d); 
+                  new_infow.close();
+                  marker.setMap(null) 
+                  map.data.loadGeoJson('/locations.json');
+                });
+
           });
 
+
         });
+
+
+
+
 
         
         // var coord = e.latLng.toJSON()
