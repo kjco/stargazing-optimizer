@@ -9,6 +9,7 @@
     <title>Simple Map</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/styles.css">
     <style>
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
@@ -21,45 +22,18 @@
         margin: 0;
         padding: 0;
       }
+
     </style>
   </head>
   <body>
-    <button type="button" class="btn btn-info btn-sm" id="mysaved">Click to show saved records</button>
+    
     <div id="map"></div>
-    <button type="button" id="myloc">Click to show weather</button>
-    <div class="card-group" id="weather">Put weather info here</div>
+    <button type="button" class="btn btn-info btn-sm" id="mysaved">Click to show saved records</button>
+    <button type="button" class="btn btn-info btn-sm" id="myloc">Show my weather</button>
+    <div class="card-group" id="weather"></div>
 
+    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
 
-<!-- <div class="card-group">
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Card title</h5>
-      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-    </div>
-    <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Card title</h5>
-      <p class="card-text">This card has supporting text below as a natural lead-in to additional content.</p>
-      <p class="card-text">test this</p>
-    </div>
-    <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-body">
-      <h5 class="card-title">Card title</h5>
-      <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This card has even longer content than the first to show that equal height action.<i class="fas fa-cloud"></i></p>
-    </div>
-    <div class="card-footer">
-      <small class="text-muted">Last updated 3 mins ago</small>
-    </div>
-  </div>
-</div> -->
 
 
     <script>
@@ -164,6 +138,71 @@
 
       // ctaLayer.setMap(map);
 
+      // ********** TESTING **********
+
+              // Create the search box and link it to the UI element.
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_RIGHT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // Clear out the old markers.
+          markers.forEach(function(marker) {
+            marker.setMap(null);
+          });
+          markers = [];
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+
+
+
+      // ********** TESTING **********
+
 
       let d_infow = new google.maps.InfoWindow();
 
@@ -210,13 +249,13 @@
             //        <li>Moon phase: ${json['daily']['data'][x]['moonPhase']}</li>
             //        <button type="button" class="savetime" data-time="${timestamp}">Save</button><br><br></div>`;
 
-            body += `<tr><th scope="row">${moment(parseInt(timestamp)*1000).tz(json['timezone']).format('ddd, MMMM Do')}</th><td>${json['daily']['data'][x]['summary']}</td><td>${json['daily']['data'][x]['cloudCover']}</td><td>${json['daily']['data'][x]['moonPhase']}</td><td><button type="button" class="savetime" data-time="${timestamp}">Save</button></td></tr>`
+            body += `<tr><th scope="row">${moment(parseInt(timestamp)*1000).tz(json['timezone']).format('MMM Do (ddd)')}</th><td>${json['daily']['data'][x]['summary']}</td><td>${json['daily']['data'][x]['cloudCover']}</td><td>${json['daily']['data'][x]['moonPhase']}</td><td><button type="button" class="savetime" data-time="${timestamp}">Save</button></td></tr>`
 
           }
           // txt = txt+"</div>"
           head = head+body+"</tbody></table>"
           // document.getElementById("weather").innerHTML = txt;
-          d_infow.setContent(`${e.feature.f['name']} ${e.latLng.toString()}<br>Light value: ${e.feature.f['light']}<br><br>${head}`);
+          d_infow.setContent(`<h5>${e.feature.f['name']}</h5> ${e.latLng.toString()}<br>Light value: ${e.feature.f['light']}<br><br>${head}`);
 
           // Setup event listener to post timestamp info stored in button and latlng info from event
 
@@ -371,7 +410,7 @@
                           <div class="card-body">
                             <h6 class="card-title">${moment(parseInt(json['daily']['data'][x]['time'])*1000).format('dddd')}</h6>
                             <p class="card-text">${json['daily']['data'][x]['summary']}</p>
-                            <img src="/static/Cloud-Drizzle.svg" />
+                            <img src="/static/SVG/Cloud-Sun.svg" />
                           </div>
                           <div class="card-footer">
                             <small class="text-muted"><i class="fas fa-cloud"></i> ${json['daily']['data'][x]['cloudCover']}%<br><i class="fas fa-moon"></i> ${json['daily']['data'][x]['moonPhase']}</small>
@@ -475,7 +514,7 @@
         infoWindow.open(map);  
       }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key={{gmap_key}}&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key={{gmap_key}}&libraries=places&callback=initMap"
     async defer></script>
   </body>
 
