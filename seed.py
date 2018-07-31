@@ -10,9 +10,9 @@ from datetime import datetime
 from geopy.geocoders import Nominatim
 
 
-def load_location():
+def load_location(filename):
 
-    for line in open("darksky_sites.txt"):
+    for line in open(filename):
         line = line.rstrip().split(' (')
 
         # print(line[0])
@@ -47,11 +47,11 @@ def load_location():
     print("location db session commit")
 
 
-def load_person():
+def load_person(filename):
 
     Person.query.delete()
 
-    for line in open("user_examples.txt"):
+    for line in open(filename):
         email, pw, fname, lname, zipcode = line.rstrip().split(',')
 
         print(email, pw, fname, lname, zipcode)
@@ -68,9 +68,9 @@ def load_person():
     print("person db session commit")
 
 
-def load_saved_record():
+def load_saved_record(filename):
 
-    for line in open("saved_record_examples.txt"):
+    for line in open(filename):
         person_id, loc_id, when_saved, saved_datetime = line.rstrip().split(',')
 
         print(type(when_saved))
@@ -91,11 +91,11 @@ def load_saved_record():
 
 
 if __name__ == "__main__":
-    connect_to_db(app)
+    connect_to_db(app, 'postgresql:///stargazing')
     db.create_all()
-    load_location()
-    load_person()
-    load_saved_record()
+    load_location("darksky_sites.txt")
+    load_person("user_examples.txt")
+    load_saved_record("saved_record_examples.txt")
 
 
 

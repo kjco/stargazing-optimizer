@@ -40,6 +40,16 @@
 
 <body>
 
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
 <nav class="navbar navbar-expand-md navbar-dark bg-secondary">
     <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
         <ul class="navbar-nav mr-auto">
@@ -68,9 +78,9 @@
     </div>
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
         <ul class="navbar-nav ml-auto">
-            <!-- <li class="nav-item">
-                <a class="nav-link" href="#">Right</a>
-            </li> -->
+            <li class="nav-item">
+                <a class="nav-link" style="color:#cce6ff" href="#">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a>
+            </li>
             <form class="form-inline my-2 my-lg-0" action="/logout"><input type="submit" class="btn btn-secondary btn-sm nav-link" value="Logout">
             </form>
         </ul>
@@ -99,15 +109,9 @@
   </form> -->
 
    
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+
+
+
     {% block content %} PUT YOUR CONTENT HERE 
 
 

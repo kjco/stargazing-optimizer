@@ -41,10 +41,12 @@ def index():
 def show_locations():
 
     locations = Location.query.all()
-    locations_dict = {}
+    # locations_dict = {}
 
-    for location in locations:
-        locations_dict[location] = forecast(darksky_key, location.lat, location.lng)
+    # for location in locations:
+    #     locations_dict[location] = forecast(darksky_key, location.lat, location.lng)
+
+    locations_dict = get_locations_dict(locations)
 
 
 
@@ -219,7 +221,8 @@ def login():
         if login is not None:
             session['email'] = email
             session['person_id'] = login.person_id
-            flash("Login successful")
+            session['person_name'] = '{} {}'.format(login.fname, login.lname)
+            flash("{} {}".format(login.fname, login.lname))
             return redirect("/")
         else:
             flash("Email or password incorrect. Try again.")
@@ -245,6 +248,7 @@ def register():
 def logout():
     session.pop('email', None)
     session.pop('person_id', None)
+    session.pop('person_name', None)
     flash("You are logged out.")
     return redirect('/')
 
@@ -260,6 +264,13 @@ def get_pixel_val(lat,lng):
 
 
 
+def get_locations_dict(loc_lst):
+
+    locs_dict = {}
+    for location in loc_lst:
+        locs_dict[location] = forecast(darksky_key, location.lat, location.lng)
+
+    return locs_dict
 
 
 
@@ -275,7 +286,7 @@ if __name__ == "__main__":
     # make sure templates, etc. are not cached in debug mode
     app.jinja_env.auto_reload = app.debug
 
-    connect_to_db(app)
+    connect_to_db(app, 'postgresql:///stargazing')
 
     # Use the DebugToolbar
     DebugToolbarExtension(app)
