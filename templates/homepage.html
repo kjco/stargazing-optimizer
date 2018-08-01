@@ -33,9 +33,11 @@
     <div class="card-group" id="weather"></div>
 
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <figure class="icons">
+        <canvas id="icon" width="64" height="64"></canvas></figure>
 
 
-
+    <script src="https://darkskyapp.github.io/skycons/skycons.js"></script>
     <script>
       let ds_key = {{ds_key|tojson}}
       let gmap_key = {{gmap_key|tojson}}
@@ -397,6 +399,8 @@
                 var x;
                 // let txt = `Current time: ${date}<br><br><div id="container">`;
                 let txt2 = ``
+                let icon_lst = []
+                let count = 0
 
                 // $('#weather').html(`<h5>Time: ${date}</h5><h5>Weather: ${json['currently']['summary']}</h5>`)
                 for (x in json['daily']['data']) {
@@ -405,20 +409,27 @@
                   //        <li>Summary: ${json['daily']['data'][x]['summary']}</li>
                   //        <li>Cloud cover: ${json['daily']['data'][x]['cloudCover']}</li>
                   //        <button class="save">Save</button><br><br></div>`;
-
                   txt2 += `<div class="card">
                           <div class="card-body">
                             <h6 class="card-title">${moment(parseInt(json['daily']['data'][x]['time'])*1000).format('dddd')}</h6>
                             <p class="card-text">${json['daily']['data'][x]['summary']}</p>
-                            <img src="/static/SVG/Cloud-Sun.svg" />
+                            <figure class="icons"><canvas id="${json['daily']['data'][x]['icon']}${count}" width="64" height="64"></canvas></figure>
                           </div>
                           <div class="card-footer">
                             <small class="text-muted"><i class="fas fa-cloud"></i> ${json['daily']['data'][x]['cloudCover']}%<br><i class="fas fa-moon"></i> ${json['daily']['data'][x]['moonPhase']}</small>
                           </div>
                         </div>`;
+                  count = count + 1;
+                  icon_lst.push(json['daily']['data'][x]['icon']);
+                  // console.log(icon_lst)
                 }
 
                 document.getElementById("weather").innerHTML = txt2;
+
+                var icons = new Skycons(), i;
+                for(i = icon_lst.length; i--; )
+                  icons.set(`${icon_lst[i]}${i}`,icon_lst[i]);
+                icons.play();
 
                 // container.onclick = function(e){
                 //   if (e.target.className != 'save') return;
@@ -468,6 +479,10 @@
             new_infow.setPosition(e.latLng);
             new_infow.open(map);
             console.log(e)
+
+            google.maps.event.addListener(new_infow, 'closeclick', function(){
+              marker.setMap(null);
+            });
 
             $("#newloc").on("click", function(evt) {
 

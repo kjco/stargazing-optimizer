@@ -41,13 +41,8 @@ def index():
 def show_locations():
 
     locations = Location.query.all()
-    # locations_dict = {}
-
-    # for location in locations:
-    #     locations_dict[location] = forecast(darksky_key, location.lat, location.lng)
 
     locations_dict = get_locations_dict(locations)
-
 
 
     return render_template("location_list.html",
@@ -62,17 +57,7 @@ def location_info():
 
     loc_lst = Location.query.all()
 
-    feature_lst = []
-    for loc in loc_lst:
-        lat = loc.lat
-        lng = loc.lng
-        light_val = int(get_pixel_val(loc.lat,loc.lng))
-        loc_point = geojson.Point((loc.lng, loc.lat))
-        loc_json = geojson.Feature(geometry=loc_point,properties={"id" : loc.loc_id, "name" : loc.loc_name, "light" : light_val})
-        feature_lst.append(loc_json)
-
-    locs_json = geojson.FeatureCollection(feature_lst)
-
+    locs_json = get_location_geojson(loc_lst)
 
     return jsonify(locs_json)
 
@@ -82,16 +67,18 @@ def saved_records_info():
 
     records_lst = SavedRecord.query.filter(SavedRecord.person_id == session["person_id"]).all()
 
-    feature_lst = []
-    for record in records_lst:
-        lat = record.location.lat
-        lng = record.location.lng
-        saved_time = int(record.saved_datetime.timestamp())
-        loc_point = geojson.Point((lng, lat))
-        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id})
-        feature_lst.append(loc_json)
+    locs_json = get_geojson(records_lst)
 
-    locs_json = geojson.FeatureCollection(feature_lst)
+    # feature_lst = []
+    # for record in records_lst:
+    #     lat = record.location.lat
+    #     lng = record.location.lng
+    #     saved_time = int(record.saved_datetime.timestamp())
+    #     loc_point = geojson.Point((lng, lat))
+    #     loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id})
+    #     feature_lst.append(loc_json)
+
+    # locs_json = geojson.FeatureCollection(feature_lst)
 
     return jsonify(locs_json)
 
@@ -127,7 +114,7 @@ def get_post_javascript_data():
     # current_loc = db.session.query(Location).filter(Location.lat==coord_lst[0],Location.lng==coord_lst[1]).first()
     # print(current_loc)
 
-    return 'Location saved'
+    return 'New Location Saved'
 
     
 
@@ -217,7 +204,7 @@ def login():
         
         login = Person.query.filter(Person.email==email, Person.password==passw).first()
         print(login)
-        print(login.password)
+        # print(login.password)
         if login is not None:
             session['email'] = email
             session['person_id'] = login.person_id
@@ -273,6 +260,37 @@ def get_locations_dict(loc_lst):
     return locs_dict
 
 
+def get_geojson(records_lst):
+
+    feature_lst = []
+    for record in records_lst:
+        lat = record.location.lat
+        lng = record.location.lng
+        saved_time = int(record.saved_datetime.timestamp())
+        loc_point = geojson.Point((lng, lat))
+        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id})
+        feature_lst.append(loc_json)
+
+    locs_json = geojson.FeatureCollection(feature_lst)
+
+    return locs_json
+
+
+def get_location_geojson(loc_lst):
+
+    feature_lst = []
+    for loc in loc_lst:
+        lat = loc.lat
+        lng = loc.lng
+        light_val = int(get_pixel_val(loc.lat,loc.lng))
+        loc_point = geojson.Point((loc.lng, loc.lat))
+        loc_json = geojson.Feature(geometry=loc_point,
+            properties={"id": loc.loc_id, "name": loc.loc_name, "light": light_val})
+        feature_lst.append(loc_json)
+
+    locs_json = geojson.FeatureCollection(feature_lst)
+
+    return locs_json
 
 
 
