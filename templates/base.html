@@ -10,6 +10,7 @@
   <!-- Compiled and minified CSS -->
   <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/css/materialize.min.css"> -->
 
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
             
 
   <script
@@ -56,36 +57,77 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/">Home</a>
             </li>
+            {% if not session %}
             <li class="nav-item">
                 <a class="nav-link" href="/login">Login</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="/register">Register</a>
             </li>
+            {% else %}
             <li class="nav-item">
-                <a class="nav-link" href="#">Profile</a>
+                <button style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" onclick="w3_open()">☰</button>
             </li>
+            {% endif %}
+<!--             <li class="nav-item">   
+              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">Show records</button>
+            </li> -->
+            
             <li class="nav-item">
                 <a class="nav-link" href="#">Link</a>
             </li>
         </ul>
     </div>
     <div class="mx-auto order-0">
-        <a class="navbar-brand mx-auto" href="#">St<i class="fas fa-star"></i>rgaze</a>
+        <a class="navbar-brand mx-auto" href="/">St<i class="fas fa-star"></i>rgaze</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
         <ul class="navbar-nav ml-auto">
+          {% if session %}
             <li class="nav-item">
-                <a class="nav-link" style="color:#cce6ff" href="#">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a>
+                <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link"><a style="color:#cce6ff" href="/person/{{session["person_id"]}}">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a></button>
             </li>
+            <li class="nav-item">
+              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">My records</button>
+            </li>
+            <li class="nav-item">
+              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="hidesaved">Hide</button>
+            </li>
+<!--             <li class="nav-item">
+                <a class="nav-link" style="color:#cce6ff" href="/person/{{session["person_id"]}}">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a>
+            </li> -->
+          {% else %}
+            <li class="nav-item">
+                <a class="nav-link" style="color:#cce6ff" href="/login">Please login</a>
+            </li>
+          {% endif %}
             <form class="form-inline my-2 my-lg-0" action="/logout"><input type="submit" class="btn btn-secondary btn-sm nav-link" value="Logout">
             </form>
         </ul>
     </div>
 </nav>
+
+
+<div class="w3-sidebar w3-bar-block" style="display:none" id="mySidebar">
+  <button onclick="w3_close()" class="w3-bar-item w3-button w3-large">Close &times;</button>
+  <a href="#" class="w3-bar-item w3-button">Link 1</a>
+  <a href="#" class="w3-bar-item w3-button">Link 2</a>
+  <a href="#" class="w3-bar-item w3-button">Link 3</a>
+  
+</div>
+
+<script>
+function w3_open() {
+    document.getElementById("mySidebar").style.width = "100%";
+    document.getElementById("mySidebar").style.display = "block";
+}
+function w3_close() {
+    document.getElementById("mySidebar").style.display = "none";
+}
+</script>
 
 
 <!--   <nav class="navbar navbar-expand-lg navbar-light bg-light">

@@ -41,9 +41,9 @@ class FlaskTestsBasic(TestCase):
 
         def _mock_get_location_geojson(loc_lst):
 
-            geojson_str = """{ "features": [ { "geometry": 
-                { "coordinates": [ -100.00, 100.00 ], "type": "Point" }, 
-                "properties": { "id": 1, "name": "StarsEverywhere", "light": 1 }, 
+            geojson_str = """{ "features": [ { "geometry":
+                { "coordinates": [ -100.00, 100.00 ], "type": "Point" },
+                "properties": { "id": 1, "name": "StarsEverywhere", "light": 1 },
                 "type": "Feature" }], "type" : "FeatureCollection"}"""
 
             return geojson_str

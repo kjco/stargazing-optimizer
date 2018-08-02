@@ -148,7 +148,18 @@ def get_save_data():
     db.session.add(new_record)
     db.session.commit()
 
-    return 'Location saved'
+    return 'Record saved'
+
+
+@app.route('/delete-record', methods=['POST'])
+def delete_saved_record():
+    print(request.form)
+    saved_id = int(request.form["saved_id"])
+    tbd = SavedRecord.query.get(saved_id)
+    db.session.delete(tbd)
+    db.session.commit()
+
+    return 'This record has been removed.'
 
 
 @app.route('/rating-json', methods=['POST'])

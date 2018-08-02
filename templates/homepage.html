@@ -14,7 +14,7 @@
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 80%;
+        height: 70%;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -28,8 +28,9 @@
   <body>
     
     <div id="map"></div>
-    <button type="button" class="btn btn-info btn-sm" id="mysaved">Click to show saved records</button>
-    <button type="button" class="btn btn-info btn-sm" id="myloc">Show my weather</button>
+<!--     <button type="button" class="btn btn-info btn-sm" id="mysaved">Show saved records</button>
+    <button type="button" class="btn btn-info btn-sm" id="hidesaved">Hide saved records</button> -->
+    <!-- <button type="button" class="btn btn-info btn-sm" id="myloc">Show my weather</button> -->
     <div class="card-group" id="weather"></div>
 
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
@@ -133,12 +134,12 @@
 
       // Testing kml overlay with an example template
 
-      // var ctaLayer = new google.maps.KmlLayer({
-      //   url: 'http://googlemaps.github.io/js-v2-samples/ggeoxml/cta.kml',
-      //   map: map
-      //   });
+      var kmlLayer = new google.maps.KmlLayer({
+        url: 'https://raw.githubusercontent.com/kjco/stargazing-optimizer/master/static/jpg_tiles/us-east-warped/doc.kml',
+        map: map
+        });
 
-      // ctaLayer.setMap(map);
+      kmlLayer.setMap(map);
 
       // ********** TESTING **********
 
@@ -222,9 +223,15 @@
       //     icon: "http://maps.google.com/mapfiles/ms/micons/blue.png"
       //   });
       // Add event listener that shows info window (latlng info) on click
+      var elementExists = document.getElementById('mysaved');
+
       map.data.addListener('click', function(e) {
         console.log(e.latLng.toString());
         console.log(e);
+        var divHeightOfTheMap = document.getElementById('map').clientHeight;
+        var offSetFromBottom = 30;
+        map.setCenter(e.latLng);
+        map.panBy(0, -(divHeightOfTheMap / 2 - offSetFromBottom));
         d_infow.setContent(`${e.latLng.toString()}`);
         d_infow.setPosition(e.latLng);
         d_infow.open(map);
@@ -257,17 +264,22 @@
           // txt = txt+"</div>"
           head = head+body+"</tbody></table>"
           // document.getElementById("weather").innerHTML = txt;
-          d_infow.setContent(`<h5>${e.feature.f['name']}</h5> ${e.latLng.toString()}<br>Light value: ${e.feature.f['light']}<br><br>${head}`);
+          d_infow.setContent(`<h5>${e.feature.f['name']}</h5><strong>Light value: ${e.feature.f['light']}</strong><br>GeoCoordinates: ${e.latLng.toString()}<br><br>${head}`);
 
           // Setup event listener to post timestamp info stored in button and latlng info from event
 
           $('.savetime').click(function() {
             console.log($(this).attr('data-time'));
             console.log(e.latLng.lat());
+            if (elementExists) {
             let info = {'lat': e.latLng.lat(), 'lng': e.latLng.lng(), 'timestamp': $(this).attr('data-time')}
-            $.post("/save-json", info, function(data) { console.log(data); })
+            $.post("/save-json", info, function(data) { alert(data); $(this).remove(); document.getElementById('mysaved').click();});
+            } else {
+              alert("Please login to use this feature!")
+            }
 
           });
+          
 
 
           // $('button').click(function(){
@@ -287,11 +299,17 @@
       placeMarker(e.latLng, map);
       });
 
-      // Try to load user saved data
+
+      // Try to load user saved data  
+
+      // var elementExists = document.getElementById('mysaved');
+
+      if (elementExists){    
 
       let s_infow = new google.maps.InfoWindow();
-
       let saved_b = document.querySelector('#mysaved');
+      let hide_b = document.querySelector('#hidesaved');
+
       saved_b.addEventListener('click', function() {
           // map.data.setMap(null);
           $.getJSON('/myrecords.json', function(data) {console.log(data);});
@@ -302,15 +320,16 @@
           console.log("loaded my saved");
 
           data1.addListener("mouseover", function(evt) {
+            console.log(evt);
 
             let url1 = `https://api.darksky.net/forecast/${ds_key}/${evt.latLng.lat()},${evt.latLng.lng()},${evt.feature.f["timestamp"]}?callback=?`
 
             $.getJSON(url1, function(json) { 
                   // TEST THIS
-                infotxt = `<strong>${evt.feature.f["name"]}</strong><br>
+                infotxt = `<strong>${evt.feature.f["name"]}</strong><br><div class="saved-entries">
                 Saved date: ${moment(parseInt(evt.feature.f["timestamp"])*1000).tz(json['timezone']).format('MMMM Do YYYY, dddd')} (${json['timezone']})<br>
                 Cloud cover: ${json['daily']['data'][0]['cloudCover']}<br>
-                MoonPhase: ${json['daily']['data'][0]['moonPhase']}<br><br>
+                MoonPhase: ${json['daily']['data'][0]['moonPhase']}<br><button type="button" class="deletesaved" deleteid="${evt.feature.f["saved_id"]}">Remove</button></div><br><br>
                 <form>Rate this location: 
                       <input type="radio" name="rating" value="1"> 1 
                       <input type="radio" name="rating" value="2"> 2 
@@ -323,6 +342,18 @@
                 s_infow.open(map);
                 console.log(evt.feature.f["timestamp"]);
                 console.log(evt.feature.f["loc_id"])
+                console.log(evt.feature.f["saved_id"])
+
+                $('.deletesaved').click(function() {
+                  delete_info = {"saved_id": $(this).attr('deleteid')}
+                  $.post('/delete-record', delete_info, function(response) {
+                    alert(response);
+                  });
+                  $(this).parent().remove();
+                  document.getElementById('hidesaved').click();
+                  document.getElementById('mysaved').click();
+
+                });
 
                 $('[type*="radio"]').change(function() {
 
@@ -337,13 +368,6 @@
 
             });
 
-            // infotxt = `<strong>${evt.feature.f["name"]}</strong><br>
-            // saved time: ${moment(parseInt(evt.feature.f["timestamp"])*1000).format('MMMM Do YYYY, dddd')}`
-
-            // s_infow.setPosition(evt.latLng);
-            // s_infow.setContent(infotxt)
-            // s_infow.open(map);
-            // console.log(evt.feature.f["timestamp"])
 
           });
 
@@ -364,6 +388,8 @@
               // icon: "http://maps.google.com/mapfiles/ms/micons/yellow.png"
               // });
       });
+      hide_b.addEventListener('click', function() {data1.setMap(null)});
+    };
 
 
 
@@ -379,13 +405,13 @@
             };
 
             infoWindow.setPosition(pos);
-            infoWindow.setContent('Location found.');
+            infoWindow.setContent('Location found');
             infoWindow.open(map);
             map.setCenter(pos);
 
             // Pass current position info to button 
-            let button = document.querySelector('#myloc');
-            button.addEventListener('click', function(e) {
+            // let button = document.querySelector('#myloc');
+            // button.addEventListener('click', function(e) {
               console.log('Button clicked and listened for event');
               console.log(pos);
               console.log(pos.lat);
@@ -422,7 +448,7 @@
                   count = count + 1;
                   icon_lst.push(json['daily']['data'][x]['icon']);
                   // console.log(icon_lst)
-                }
+                };
 
                 document.getElementById("weather").innerHTML = txt2;
 
@@ -441,7 +467,7 @@
 
               });
 
-            });
+            // });
 
           }, function() {
             handleLocationError(true, infoWindow, map.getCenter());
