@@ -71,16 +71,16 @@
             </li>
             {% else %}
             <li class="nav-item">
-                <button style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" onclick="w3_open()">☰</button>
+                <button style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" onclick="w3_open()">☰ Welcome {{session['person_name']}}</button>
             </li>
             {% endif %}
 <!--             <li class="nav-item">   
               <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">Show records</button>
             </li> -->
             
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <a class="nav-link" href="#">Link</a>
-            </li>
+            </li> -->
         </ul>
     </div>
     <div class="mx-auto order-0">
@@ -92,14 +92,14 @@
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
         <ul class="navbar-nav ml-auto">
           {% if session %}
-            <li class="nav-item">
+           <!--  <li class="nav-item">
                 <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link"><a style="color:#cce6ff" href="/person/{{session["person_id"]}}">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a></button>
+            </li> -->
+            <li class="nav-item">
+              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">Map saved records</button>
             </li>
             <li class="nav-item">
-              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">My records</button>
-            </li>
-            <li class="nav-item">
-              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="hidesaved">Hide</button>
+              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="hidesaved">Hide records</button>
             </li>
 <!--             <li class="nav-item">
                 <a class="nav-link" style="color:#cce6ff" href="/person/{{session["person_id"]}}">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a>
