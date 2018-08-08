@@ -69,6 +69,8 @@ def saved_records_info():
 
     locs_json = get_geojson(records_lst)
 
+    # print(session["email"])
+
     # feature_lst = []
     # for record in records_lst:
     #     lat = record.location.lat
@@ -183,8 +185,27 @@ def person_profile(person_id):
 
     saved_lst = person.saved_records
 
+    print(saved_lst[0].saved_datetime)
+    thistime = saved_lst[0].saved_datetime.isoformat()
+    print(saved_lst[0].location.lat)
+    print(saved_lst[0].location.lng)
+
+    thisrecord = forecast(darksky_key, saved_lst[0].location.lat, saved_lst[0].location.lng, thistime)
+
+    print(thisrecord['currently']['cloudCover'])
+
+
     return render_template("result.html", saved_lst=saved_lst)
 
+
+@app.route("/saved-location-forecast-json")
+def get_saved_location_forecast():
+
+    records_lst = SavedRecord.query.filter(SavedRecord.person_id == session["person_id"]).all()
+
+    locs_json = get_forecast_geojson(records_lst)
+
+    return jsonify(locs_json)
 
 
 @app.route("/form")
@@ -232,8 +253,10 @@ def register():
     if request.method == "POST":
         email = request.form['email']
         passw = request.form['passw']
+        fname = request.form['fname']
+        lname = request.form['lname']
 
-        register = Person(email = email, password = passw)
+        register = Person(email=email, password=passw, fname=fname, lname=lname)
         db.session.add(register)
         db.session.commit()
         flash("You've registered. Please login.")
@@ -253,7 +276,7 @@ def logout():
 
 
 
-def get_pixel_val(lat,lng):
+def get_pixel_val(lat, lng):
 
     lnglat_lst = [(float(lng), float(lat))]
     with rasterio.open("BlackMarble_2016_3km_gray_geo.tif") as src:
@@ -277,9 +300,36 @@ def get_geojson(records_lst):
     for record in records_lst:
         lat = record.location.lat
         lng = record.location.lng
+        light_val = int(get_pixel_val(lat, lng))
         saved_time = int(record.saved_datetime.timestamp())
         loc_point = geojson.Point((lng, lat))
-        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id})
+        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id, "light": light_val})
+        feature_lst.append(loc_json)
+
+    locs_json = geojson.FeatureCollection(feature_lst)
+
+    return locs_json
+
+
+def get_forecast_geojson(records_lst):
+
+    feature_lst = []
+    for record in records_lst:
+        lat = record.location.lat
+        lng = record.location.lng
+        light_val = int(get_pixel_val(lat, lng))
+        saved_time = int(record.saved_datetime.timestamp())
+
+        saved_time_iso = record.saved_datetime.isoformat()
+  
+        thisrecord = forecast(darksky_key, lat, lng, saved_time_iso)
+
+        cloud = thisrecord['daily']['data'][0]['cloudCover']
+        moon = thisrecord['daily']['data'][0]['moonPhase']
+        summary = thisrecord['daily']['data'][0]['summary']
+
+        loc_point = geojson.Point((lng, lat))
+        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id, "light": light_val, "cloud": cloud, "moon": moon, "summary": summary})
         feature_lst.append(loc_json)
 
     locs_json = geojson.FeatureCollection(feature_lst)
@@ -293,7 +343,7 @@ def get_location_geojson(loc_lst):
     for loc in loc_lst:
         lat = loc.lat
         lng = loc.lng
-        light_val = int(get_pixel_val(loc.lat,loc.lng))
+        light_val = int(get_pixel_val(loc.lat, loc.lng))
         loc_point = geojson.Point((loc.lng, loc.lat))
         loc_json = geojson.Feature(geometry=loc_point,
             properties={"id": loc.loc_id, "name": loc.loc_name, "light": light_val})

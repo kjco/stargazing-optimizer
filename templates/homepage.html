@@ -14,7 +14,7 @@
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 70%;
+        height: 75%;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -35,10 +35,13 @@
 
     <input id="pac-input" class="controls" type="text" placeholder="Search Box">
     <figure class="icons">
-        <canvas id="icon" width="64" height="64"></canvas></figure>
+        <canvas id="icon" width="64" height="64"></canvas>
+    </figure>
 
+   
 
     <script src="https://darkskyapp.github.io/skycons/skycons.js"></script>
+
     <script>
       let ds_key = {{ds_key|tojson}}
       let gmap_key = {{gmap_key|tojson}}
@@ -48,7 +51,12 @@
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 37.368, lng: -122.036346},
-          zoom: 3,
+          zoom: 5,
+          mapTypeId: 'Night',
+          mapTypeControlOptions: {
+            mapTypeIds: ['Night', 'roadmap', 'satellite'],
+            style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR
+          },
           styles: [
             {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
             {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
@@ -132,14 +140,77 @@
         });
       // var marker = new google.maps.Marker({position: {lat: 37.368, lng: -122.036346}, map: map});
 
-      // Testing kml overlay with an example template
+      // ***** Testing kml overlay with an example template *****
 
-      var kmlLayer = new google.maps.KmlLayer({
-        url: 'https://raw.githubusercontent.com/kjco/stargazing-optimizer/master/static/jpg_tiles/us-east-warped/doc.kml',
-        map: map
-        });
+      // var TILE_URL = 'http://c.tile.stamen.com/watercolor/{z}/{x}/{y}.jpg';
+      var TILE_URL = 'https://github.com/kjco/stargazing-optimizer/raw/master/static/jpg_tiles/{z}/{x}/{y}.png'
 
-      kmlLayer.setMap(map);
+      // Name the layer anything you like.
+      var layerID = 'Night';
+
+      // Create a new ImageMapType layer.
+      var layer = new google.maps.ImageMapType({
+        name: layerID,
+        getTileUrl: function(coord, zoom) {
+          console.log(coord);
+          var url = TILE_URL
+            .replace('{x}', coord.x)
+            .replace('{y}', Math.pow(2,zoom)-coord.y-1)
+            .replace('{z}', zoom);
+          // console.log(url);
+          return url;
+        },
+        tileSize: new google.maps.Size(256, 256),
+        minZoom: 1,
+        maxZoom: 20,
+      });
+
+      function getNormalizedCoord(tile, zoom) {
+        var tileRange = 1 << zoom;
+        if(tile.y < 0 || tile.y >= tileRange)
+          return null;
+        return { x: (tile.x % tileRange + tileRange) % tileRange, y: tile.y };
+      }
+
+      var transparentMapType = new google.maps.ImageMapType({
+        getTileUrl: function(tile, zoom) {
+          tile = getNormalizedCoord(tile, zoom);
+          if(!tile)
+            return null;
+          return "https://mts1.google.com/vt/v=apt.116&hl=se&x=" + tile.x + "&y=" + tile.y + "&z=" + zoom + "&s=G&lyrs=m";
+        },
+        tileSize: new google.maps.Size(256, 256),
+        isPng: false,
+        maxZoom: 20,
+        name: "Transparent map",
+        opacity: 0.2,
+      });
+
+      var transparentLabelsType = new google.maps.ImageMapType({
+        getTileUrl: function(tile, zoom) {
+          tile = getNormalizedCoord(tile, zoom);
+          if(!tile)
+            return null;
+          return "https://mts0.google.com/vt/v=apt.116&hl=se&x=" + tile.x + "&y=" + tile.y + "&z=" + zoom + "&s=G&lyrs=h";
+        },
+        tileSize: new google.maps.Size(256, 256),
+        isPng: false,
+        maxZoom: 20,
+        name: "Transparent labels",
+      });
+      // Register the new layer, then activate it.
+      map.mapTypes.set(layerID, layer);
+      map.setMapTypeId(layerID);
+      // map.overlayMapTypes.insertAt(0, transparentMapType);
+      map.overlayMapTypes.insertAt(0, transparentLabelsType);
+
+
+      // var kmlLayer = new google.maps.KmlLayer({
+      //   url: 'https://raw.githubusercontent.com/kjco/stargazing-optimizer/master/static/jpg_tiles/doc.kml',
+      //   map: map
+      //   });
+
+      // kmlLayer.setMap(map);
 
       // ********** TESTING **********
 
@@ -273,7 +344,9 @@
             console.log(e.latLng.lat());
             if (elementExists) {
             let info = {'lat': e.latLng.lat(), 'lng': e.latLng.lng(), 'timestamp': $(this).attr('data-time')}
-            $.post("/save-json", info, function(data) { alert(data); $(this).remove(); document.getElementById('mysaved').click();});
+            $.post("/save-json", info, function(data) { alert(data); });
+            document.getElementById('hidesaved').click();
+            document.getElementById('mysaved').click();
             } else {
               alert("Please login to use this feature!")
             }
@@ -310,9 +383,11 @@
       let saved_b = document.querySelector('#mysaved');
       let hide_b = document.querySelector('#hidesaved');
 
+      hide_b.addEventListener('click', function() {data1.setMap(null)});
+
       saved_b.addEventListener('click', function() {
           // map.data.setMap(null);
-          $.getJSON('/myrecords.json', function(data) {console.log(data);});
+          // $.getJSON('/myrecords.json', function(data) {console.log(data);});
           data1 = new google.maps.Data();
           data1.loadGeoJson('/myrecords.json');
           data1.setMap(map);
@@ -326,7 +401,7 @@
 
             $.getJSON(url1, function(json) { 
                   // TEST THIS
-                infotxt = `<strong>${evt.feature.f["name"]}</strong><br><div class="saved-entries">
+                infotxt = `<strong>${evt.feature.f["name"]}</strong>  (Light value: ${evt.feature.f["light"]})<br><br><div class="saved-entries">
                 Saved date: ${moment(parseInt(evt.feature.f["timestamp"])*1000).tz(json['timezone']).format('MMMM Do YYYY, dddd')} (${json['timezone']})<br>
                 Cloud cover: ${json['daily']['data'][0]['cloudCover']}<br>
                 MoonPhase: ${json['daily']['data'][0]['moonPhase']}<br><button type="button" class="deletesaved" deleteid="${evt.feature.f["saved_id"]}">Remove</button></div><br><br>
@@ -388,7 +463,7 @@
               // icon: "http://maps.google.com/mapfiles/ms/micons/yellow.png"
               // });
       });
-      hide_b.addEventListener('click', function() {data1.setMap(null)});
+      // hide_b.addEventListener('click', function() {data1.setMap(null)});
     };
 
 
@@ -501,7 +576,7 @@
           <tr><td></td><td><input type='button' value='Save' id='newloc'/></td></tr>
           </table></div>`
 
-            new_infow.setContent(`${e.latLng.toString()}<br>${data}<br>${text}`);
+            new_infow.setContent(`${e.latLng.toString()}<br>Light value: ${data}<br>${text}`);
             new_infow.setPosition(e.latLng);
             new_infow.open(map);
             console.log(e)
@@ -557,6 +632,8 @@
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key={{gmap_key}}&libraries=places&callback=initMap"
     async defer></script>
+
+
   </body>
 
 

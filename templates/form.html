@@ -4,14 +4,29 @@
 <title>W3.CSS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.10.18/css/dataTables.bootstrap4.min.css">
+<link rel="stylesheet" href="/static/styles.css">
 <body>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap4.min.js"></script>
+
+
 
 <!-- Sidebar -->
 <div class="w3-sidebar w3-bar-block" style="display:none" id="mySidebar">
   <button onclick="w3_close()" class="w3-bar-item w3-button w3-large">Close &times;</button>
-  <a href="#" class="w3-bar-item w3-button">Link 1</a>
-  <a href="#" class="w3-bar-item w3-button">Link 2</a>
-  <a href="#" class="w3-bar-item w3-button">Link 3</a>
+  
+  <div id="testThis">
+
+    <div class="spinner">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+
+  </div>
 </div>
 
 <!-- Page Content -->
@@ -21,7 +36,7 @@
   </div>
 </div>
 
-<img src="img_car.jpg" alt="Car" style="width:100%">
+<!-- <img src="https://d194ip2226q57d.cloudfront.net/original_images/Best_Summer_Stargazing" alt="Car" style="width:100%"> -->
 
 <div class="w3-container">
 <p>In this example, the sidebar is hidden (style="display:none")</p>
@@ -29,11 +44,55 @@
 <p>When it is opened, it hides all the page content (style.width="100%").</p>
 </div>
 
+
+<div class="loader"></div>
+
 <script>
+
 function w3_open() {
-    document.getElementById("mySidebar").style.width = "100%";
-    document.getElementById("mySidebar").style.display = "block";
+
+console.log("opening")
+document.getElementById("mySidebar").style.width = "100%";
+document.getElementById("mySidebar").style.display = "block";
+
+$.getJSON('/saved-location-forecast-json', function(json){
+        // console.log(json);
+        // console.log(json['features'][0]['properties']['cloud'])
+let start = `<table class="table table-hover" id="ordertable"><thead><tr>
+      <th scope="col">Location</th>
+      <th scope="col">Light value</th>
+      <th scope="col">Saved Date</th>
+      <th scope="col">Weather Forecast</th>
+      <th scope="col">Cloud Cover</th>
+      <th scope="col">Moonphase</th>
+      <th scope="col">PlaceHolder</th>
+    </tr></thead><tbody>`
+let end = `</tbody></table>`
+let input = ``
+for (loc in json['features']) {
+    input += `<tr><th scope="row">${json['features'][loc]['properties']['name']}</th>
+      <td>${json['features'][loc]['properties']['light']}</td>
+      <td>${moment(parseInt(json['features'][loc]['properties']['timestamp'])*1000).format('MMM Do (ddd)')}</td>
+      <td>${json['features'][loc]['properties']['summary']}</td>
+      <td>${json['features'][loc]['properties']['cloud']}</td>
+      <td>${json['features'][loc]['properties']['moon']}</td>
+      <td>PLACEHOLDER</td>
+    </tr>`
 }
+
+input = start+input+end
+// console.log(input);
+// document.getElementById("testThis").innerhtml = input;
+$("#testThis").html(input);
+
+$(document).ready(function() {
+    $('#ordertable').DataTable();
+});
+console.log("end of script")
+
+});        
+}
+
 function w3_close() {
     document.getElementById("mySidebar").style.display = "none";
 }
@@ -98,8 +157,9 @@ function w3_close() {
       //   icons.set(list[i], list[i]);
 
 //       icons.play();
-    </script>
 
+
+    </script>
 
 
 </body>
