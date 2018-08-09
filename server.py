@@ -21,14 +21,14 @@ import rasterio
 app = Flask(__name__)
 
 app_key = os.environ['APP_SECRET_KEY']
+darksky_key = os.environ['DARKSKY_API_KEY']
+gmap_key = os.environ['GOOGLEMAPS_API_KEY']
 
 app.secret_key = app_key
 
 app.jinja_env.undefined = StrictUndefined
 
-
-darksky_key = os.environ['DARKSKY_API_KEY']
-gmap_key = os.environ['GOOGLEMAPS_API_KEY']
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 @app.route("/")
@@ -280,8 +280,9 @@ def logout():
 
 def get_pixel_val(lat, lng):
 
+    img_path = os.path.join(dir_path, "BlackMarble_2016_3km_gray_geo.tif")
     lnglat_lst = [(float(lng), float(lat))]
-    with rasterio.open("BlackMarble_2016_3km_gray_geo.tif") as src:
+    with rasterio.open(img_path) as src:
         for val in src.sample(lnglat_lst):
             return val[0]
 
