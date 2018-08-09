@@ -20,13 +20,15 @@ import rasterio
 
 app = Flask(__name__)
 
-app.secret_key = "TEST"
+app_key = os.environ['APP_SECRET_KEY']
+
+app.secret_key = app_key
 
 app.jinja_env.undefined = StrictUndefined
 
 
-darksky_key=os.environ['DARKSKY_API_KEY']
-gmap_key=os.environ['GOOGLEMAPS_API_KEY']
+darksky_key = os.environ['DARKSKY_API_KEY']
+gmap_key = os.environ['GOOGLEMAPS_API_KEY']
 
 
 @app.route("/")
@@ -359,16 +361,14 @@ def get_location_geojson(loc_lst):
 
 
 if __name__ == "__main__":
-    # We have to set debug=True here, since it has to be True at the
-    # point that we invoke the DebugToolbarExtension
-    app.debug = True
-    # make sure templates, etc. are not cached in debug mode
-    app.jinja_env.auto_reload = app.debug
+    ### Set debug=True to invoke DebugToolbarExtension
+    ### Do NOT set debug to True for deployment, debug mode is security hole
+    # app.debug = True
+    # app.jinja_env.auto_reload = app.debug
 
     connect_to_db(app, 'postgresql:///stargazing')
 
     # Use the DebugToolbar
-    DebugToolbarExtension(app)
+    # DebugToolbarExtension(app)
 
     app.run(port=5000, host='0.0.0.0')
-
