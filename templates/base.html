@@ -31,11 +31,11 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.21/moment-timezone-with-data.js" integrity="sha256-uupLC8vc3S6tg2+cgXml7/1lFR28q95T+6apPd9oeD8=" crossorigin="anonymous"></script>
 
- <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/skycons/1396634940/skycons.js"></script> -->
-
-  <!-- Compiled and minified JavaScript -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-rc.2/js/materialize.min.js"></script> -->
   
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
  
 
 </head>
@@ -57,7 +57,7 @@
 {% endwith %} -->
 
 <nav class="navbar navbar-expand-md navbar-dark bg-secondary">
-    <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
+    <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2" id="testtest">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
                 <a class="nav-link" href="/">Home</a>
@@ -74,15 +74,10 @@
                 <button style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" onclick="w3_open()">☰ Welcome {{session['person_name']}}</button>
             </li>
             {% endif %}
-<!--             <li class="nav-item">   
-              <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">Show records</button>
-            </li> -->
-            
-            <!-- <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-            </li> -->
+
         </ul>
     </div>
+ 
     <div class="mx-auto order-0">
         <a class="navbar-brand mx-auto" href="/">St<i class="fas fa-star"></i>rgaze</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".dual-collapse2">
@@ -92,25 +87,21 @@
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
         <ul class="navbar-nav ml-auto">
           {% if session %}
-           <!--  <li class="nav-item">
-                <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link"><a style="color:#cce6ff" href="/person/{{session["person_id"]}}">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a></button>
-            </li> -->
+
             <li class="nav-item">
               <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="mysaved">Map saved records</button>
             </li>
             <li class="nav-item">
               <button type="button" style="color:#cce6ff; background-color:#555555; border:none;" class="btn btn-primary btn-sm nav-link" id="hidesaved">Hide records</button>
             </li>
-<!--             <li class="nav-item">
-                <a class="nav-link" style="color:#cce6ff" href="/person/{{session["person_id"]}}">{{ 'Welcome '+session['person_name'] if session else 'Please login'}}</a>
-            </li> -->
+            <form class="form-inline my-2 my-lg-0" action="/logout"><input type="submit" class="btn btn-secondary btn-sm nav-link" value="Logout">
+            </form>
           {% else %}
             <li class="nav-item">
                 <a class="nav-link" style="color:#cce6ff" href="/login">Please login</a>
             </li>
           {% endif %}
-            <form class="form-inline my-2 my-lg-0" action="/logout"><input type="submit" class="btn btn-secondary btn-sm nav-link" value="Logout">
-            </form>
+          
         </ul>
     </div>
 </nav>
@@ -134,7 +125,7 @@ function w3_open() {
     document.getElementById("mySidebar").style.width = "100%";
     document.getElementById("mySidebar").style.display = "block";
     $.getJSON('/saved-location-forecast-json', function(json){
-        // console.log(json);
+        console.log(json);
         // console.log(json['features'][0]['properties']['cloud'])
 let start = `<table class="table table-hover" id="ordertable"><thead><tr>
       <th scope="col">Location</th>
@@ -143,18 +134,18 @@ let start = `<table class="table table-hover" id="ordertable"><thead><tr>
       <th scope="col">Weather Forecast</th>
       <th scope="col">Cloud Cover</th>
       <th scope="col">Moonphase</th>
-      <th scope="col">PlaceHolder</th>
+      <th scope="col">Status</th>
     </tr></thead><tbody>`
 let end = `</tbody></table>`
 let input = ``
 for (loc in json['features']) {
     input += `<tr><th scope="row">${json['features'][loc]['properties']['name']}</th>
       <td>${json['features'][loc]['properties']['light']}</td>
-      <td>${moment(parseInt(json['features'][loc]['properties']['timestamp'])*1000).format('MMM Do (ddd)')}</td>
+      <td>${moment(parseInt(json['features'][loc]['properties']['timestamp'])*1000).tz(json['features'][loc]['properties']['tz']).format('MMM Do (ddd)')}</td>
       <td>${json['features'][loc]['properties']['summary']}</td>
       <td>${json['features'][loc]['properties']['cloud']}</td>
       <td>${json['features'][loc]['properties']['moon']}</td>
-      <td>PLACEHOLDER</td>
+      <td>${json['features'][loc]['properties']['rec']}</td>
     </tr>`
 }
 
@@ -175,39 +166,14 @@ function w3_close() {
     document.getElementById("mySidebar").style.display = "none";
 }
 
-// function load_user_info() {
-
-// }
-
 
 </script>
 
 
-<!--   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="#">Navbar</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-    <div class="navbar-nav">
-      <a class="nav-item nav-link active" href="/">Home <span class="sr-only">(current)</span></a>
-      <a class="nav-item nav-link" href="/login">Login</a>
-      <a class="nav-item nav-link" href="/register">Register</a>
-      <a class="nav-item nav-link" href="#">My profile</a>
-    </div>
-    <form class="form-inline my-2 my-lg-0" action="/logout"><input type="submit" class="btn btn-light btn-sm" value="Logout"></form>
-  </div>
-</nav>
- -->
-<!--   <form action="/logout">
-    <input type="submit" class="btn btn-light btn-sm" value="Logout">
-  </form> -->
-
-   
-
 
 
     {% block content %} PUT YOUR CONTENT HERE 
+
 
 
     {% endblock %}
