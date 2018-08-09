@@ -330,9 +330,11 @@ def get_forecast_geojson(records_lst):
         cloud = thisrecord['daily']['data'][0]['cloudCover']
         moon = thisrecord['daily']['data'][0]['moonPhase']
         summary = thisrecord['daily']['data'][0]['summary']
+        tz = thisrecord['timezone']
+        rec = get_rec(cloud, moon, light_val)
 
         loc_point = geojson.Point((lng, lat))
-        loc_json = geojson.Feature(geometry=loc_point,properties={"name": record.location.loc_name,"timestamp": saved_time, "loc_id": record.loc_id, "saved_id": record.saved_id, "light": light_val, "cloud": cloud, "moon": moon, "summary": summary})
+        loc_json = geojson.Feature(geometry=loc_point, properties={"name": record.location.loc_name, "timestamp": saved_time, "tz": tz, "loc_id": record.loc_id, "saved_id": record.saved_id, "light": light_val, "cloud": cloud, "moon": moon, "summary": summary, "rec": rec})
         feature_lst.append(loc_json)
 
     locs_json = geojson.FeatureCollection(feature_lst)
@@ -357,7 +359,20 @@ def get_location_geojson(loc_lst):
     return locs_json
 
 
+def get_rec(cloud, moon, light_val):
 
+    cloud = float(cloud)
+    moon = float(moon)
+    light_val = int(light_val)
+
+    if cloud < 0.3 and (moon < 0.25 or moon > 0.75) and light_val <100:
+        return "Excellent"
+    elif cloud < 0.3 and light_val < 100:
+        return "Good"
+    elif cloud > 0.6 or light_val > 200:
+        return "Poor"
+    else:
+        return "Fair"
 
 
 
