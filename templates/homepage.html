@@ -33,7 +33,7 @@
     <!-- <button type="button" class="btn btn-info btn-sm" id="myloc">Show my weather</button> -->
     <div class="card-group" id="weather"></div>
 
-    <input id="pac-input" class="controls" type="text" placeholder="Search Box">
+    <input id="pac-input" class="controls" type="text" placeholder="Search Location">
     <figure class="icons">
         <canvas id="icon" width="64" height="64"></canvas>
     </figure>
@@ -513,8 +513,8 @@
                   txt2 += `<div class="card">
                           <div class="card-body">
                             <h6 class="card-title">${moment(parseInt(json['daily']['data'][x]['time'])*1000).format('dddd')}</h6>
-                            <p class="card-text">${json['daily']['data'][x]['summary']}</p>
                             <figure class="icons"><canvas id="${json['daily']['data'][x]['icon']}${count}" width="64" height="64"></canvas></figure>
+                            <p class="card-text">${json['daily']['data'][x]['summary']}</p>
                           </div>
                           <div class="card-footer">
                             <small class="text-muted"><i class="fas fa-cloud"></i> ${json['daily']['data'][x]['cloudCover']}%<br><i class="fas fa-moon"></i> ${json['daily']['data'][x]['moonPhase']}</small>
