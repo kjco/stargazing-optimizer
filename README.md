@@ -8,12 +8,17 @@ Python, Unittest framework, Flask, PostgreSQL, SQLAlchemy, Geospatial Data Abstr
 
 ## Features
 * Explore custom map layer created from static NASA satellite image of the earth at night (user account registration not required).
+
 ![map](https://image.ibb.co/iCMTFp/sg1.png)
+
 * Get night light measurements and weather forecast (specifically cloudcover and moonphase) for any given geolocation.
-![location info](https://image.ibb.co/dkg5vp/sg2.png)
+
+![location info](https://image.ibb.co/j9oY89/Screen_Shot_2018_08_15_at_10_35_15_AM.png)
+
 * Register for an account, log in , and save dates and locations of interest to your personal profile.
 ![user profile](https://image.ibb.co/iaSAvp/sg3.png)
 
 
 ## For Version 2.0
-* Increase 
+* Improve efficiency of image tile creation, storage, and loading for custom night lights layer.
+* Interface with calendar and personal photo APIs to export saved events and link to stargazing photos.
