@@ -16,6 +16,7 @@ Python, Unittest framework, Flask, PostgreSQL, SQLAlchemy, Geospatial Data Abstr
 ![location info](https://image.ibb.co/j9oY89/Screen_Shot_2018_08_15_at_10_35_15_AM.png)
 
 * Register for an account, log in , and save dates and locations of interest to your personal profile.
+
 ![user profile](https://image.ibb.co/iaSAvp/sg3.png)
 
 
