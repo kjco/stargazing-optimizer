@@ -31,4 +31,4 @@ requests==2.19.1
 snuggs==1.4.2
 SQLAlchemy==1.2.9
 urllib3==1.23
-Werkzeug==0.14.1
+Werkzeug==0.15.3
